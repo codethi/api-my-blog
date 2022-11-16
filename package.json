@@ -1,6 +1,7 @@
 {
   "name": "api-my-blog",
   "version": "1.0.0",
+  "type": "module",
   "description": "API criada para explicar conceitos básicos de relacionamento de documentos no MongoDB, utilizando JavaScript e a biblioteca Express.",
   "main": "index.js",
   "scripts": {
@@ -22,5 +23,8 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "mongodb": "^4.12.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
   }
 }
