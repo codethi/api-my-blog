@@ -115,7 +115,24 @@ app.get("/posts", async (req, res) => {
   }
 
   try {
-    const posts = await postsCollection.find().toArray();
+    //const posts = await postsCollection.find().toArray();
+    const posts = await postsCollection
+      .aggregate([
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "userId",
+          },
+        },
+        {
+          $unwind: "$userId",
+        },
+        { $unset: "userId.password" },
+      ])
+      .sort({ _id: -1 })
+      .toArray();
 
     res.send(posts);
   } catch (err) {
