@@ -153,14 +153,21 @@ app.patch("/comment/:idPost", async (req, res) => {
   }
 
   try {
+    const session = await sessionsCollection.findOne({ token });
+    const user = await usersCollection.findOne({ _id: session?.userId });
+
+    if (!user) {
+      return res.sendStatus(401);
+    }
     const post = await postsCollection.findOne({ _id: ObjectId(idPost) });
+
     if (!post) {
       return res.status(404).send({ message: "Esse post não existe!" });
     }
 
     await postsCollection.updateOne(
       { _id: ObjectId(idPost) },
-      { $push: { comments: { text, commentId: uuidV4() } } }
+      { $push: { comments: { commentId: uuidV4(), text, user: user._id } } }
     );
 
     res.sendStatus(201);
