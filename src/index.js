@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { v4 as uuidV4 } from "uuid";
 import bcrypt from "bcrypt";
 
@@ -73,9 +73,85 @@ app.post("/sign-in", async (req, res) => {
   }
 });
 
-app.post("/posts", (req, res) => {});
+app.post("/posts", async (req, res) => {
+  const { title, text } = req.body;
+  const { authorization } = req.headers;
 
-app.get("/posts", (req, res) => {});
+  const token = authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  try {
+    const session = await sessionsCollection.findOne({ token });
+    const user = await usersCollection.findOne({ _id: session?.userId });
+
+    if (!user) {
+      return res.sendStatus(401);
+    }
+
+    await postsCollection.insertOne({
+      title,
+      text,
+      userId: user._id,
+      comments: [],
+    });
+
+    res.sendStatus(201);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.get("/posts", async (req, res) => {
+  const { authorization } = req.headers;
+
+  const token = authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  try {
+    const posts = await postsCollection.find().toArray();
+
+    res.send(posts);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.patch("/comment/:idPost", async (req, res) => {
+  const { text } = req.body;
+  const { idPost } = req.params;
+  const { authorization } = req.headers;
+
+  const token = authorization?.replace("Bearer ", "");
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
+
+  try {
+    const post = await postsCollection.findOne({ _id: ObjectId(idPost) });
+    if (!post) {
+      return res.status(404).send({ message: "Esse post não existe!" });
+    }
+
+    await postsCollection.updateOne(
+      { _id: ObjectId(idPost) },
+      { $push: { comments: { text, commentId: uuidV4() } } }
+    );
+
+    res.sendStatus(201);
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
 
 const port = process.env.PORT || 3333;
 app.listen(port, () => console.log(`Server running in port: ${port}`));
