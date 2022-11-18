@@ -20,12 +20,14 @@ export async function createPost(req, res) {
       return res.sendStatus(401);
     }
 
-    await postsCollection.insertOne({
+    const newPost = {
       title,
       text,
       userId: user._id,
       comments: [],
-    });
+    };
+
+    await postsCollection.insertOne(newPost);
 
     res.sendStatus(201);
   } catch (err) {
