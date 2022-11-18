@@ -5,6 +5,7 @@ import {
   postsCollection,
 } from "../database/db.js";
 import { v4 as uuidV4 } from "uuid";
+import { postsSchema } from "../index.js";
 
 export async function createPost(req, res) {
   const { title, text } = req.body;
@@ -23,9 +24,16 @@ export async function createPost(req, res) {
     const newPost = {
       title,
       text,
-      userId: user._id,
+      user: user._id,
       comments: [],
     };
+
+    const { error } = postsSchema.validate(newPost, { abortEarly: false });
+
+    if (error) {
+      const errors = error.details.map((detail) => detail.message);
+      return res.status(400).send(errors);
+    }
 
     await postsCollection.insertOne(newPost);
 
