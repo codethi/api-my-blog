@@ -50,6 +50,13 @@ export async function findPosts(req, res) {
   const token = authorization?.replace("Bearer ", "");
 
   try {
+    const session = await sessionsCollection.findOne({ token });
+    const user = await usersCollection.findOne({ _id: session?.userId });
+
+    if (!user) {
+      return res.sendStatus(401);
+    }
+
     const posts = await postsCollection.find().sort({ _id: -1 }).toArray();
     res.send(posts);
   } catch (err) {
