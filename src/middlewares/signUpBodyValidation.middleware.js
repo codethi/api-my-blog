@@ -1,4 +1,4 @@
-import { usersSchema } from "../index.js";
+import { usersSchema } from "../models/users.model.js";
 import { usersCollection } from "../database/db.js";
 
 export async function signUpBodyValidation(req, res, next) {

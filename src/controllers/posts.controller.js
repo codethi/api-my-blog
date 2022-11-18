@@ -5,22 +5,13 @@ import {
   postsCollection,
 } from "../database/db.js";
 import { v4 as uuidV4 } from "uuid";
-import { postsSchema } from "../index.js";
+import { postsSchema } from "../models/posts.model.js";
 
 export async function createPost(req, res) {
   const { title, text } = req.body;
-  const { authorization } = req.headers;
-
-  const token = authorization?.replace("Bearer ", "");
+  const user = req.user;
 
   try {
-    const session = await sessionsCollection.findOne({ token });
-    const user = await usersCollection.findOne({ _id: session?.userId });
-
-    if (!user) {
-      return res.sendStatus(401);
-    }
-
     const newPost = {
       title,
       text,
